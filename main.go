@@ -1,16 +1,37 @@
-//コメントアウト
+//https://qiita.com/Syoitu/items/8e7e3215fb7ac9dabc3aをやってみる
 package main
 
-import "github.com/gin-gonic/gin"
+import (
+    "github.com/gin-gonic/gin"
+    "io"
+    "log"
+    "net/http"
+    "os"
+)
 
-import "net/http"
-
-func main() {
-    engine:= gin.Default()
-    engine.GET("/", func(c *gin.Context) {
+func main(){
+    engine := gin.Default()
+    engine.POST("/upload", func(c *gin.Context) {
+        file,header, err :=  c.Request.FormFile("image")
+        if err != nil {
+            c.String(http.StatusBadRequest, "Bad request")
+            return
+        }
+        fileName := header.Filename
+        dir, _ := os.Getwd()
+        out, err := os.Create(dir+"\\images\\"+fileName)
+        if err != nil {
+            log.Fatal(err)
+        }
+        defer out.Close()
+        _, err = io.Copy(out, file)
+        if err != nil {
+            log.Fatal(err)
+        }
         c.JSON(http.StatusOK, gin.H{
-            "message": "hello world",
+            "status": "ok",
         })
     })
     engine.Run(":3000")
+
 }
